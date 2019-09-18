@@ -309,21 +309,12 @@ Internet-Draft            IOAM Direct Exporting           September 2019
                    provides a convenient approach to correlate the
                    exported data from the same user packet.
 
-   Note that if the IOAM-Trace-Type [I-D.ietf-ippm-ioam-data] has the
-   Hop_Lim/Node_ID bit set, then exported packets include the Hop_Lim/
-   Node_ID data field, thus indicating the node from which the packet
-   was exported.  If the DEX header had an explicit Hop Limit field it
-   would be possible for the collector to have the hop information even
-   when the Hop_Lim/Node_ID bit is not set.  Furthermore, an explicit
-   Hop Limit field would count the number of IOAM-capable hops, while
-   the Hop_Lim data field uses the TTL/Hop Limit value from a lower
-   layer protocol, which may also count IOAM-incapable hops.
-   Conversely, including such an explicit field in the DEX header would
-   require transit nodes to update the DEX header in-flight, thus
-   complicating the transit processing, while one of the main goals of
-   the DEX option was to simplify the processing of transit nodes.
-   Therefore, the DEX header does not include an explicity Hop Limit
-   field, and the Hop_Lim/Node_ID data field can be used instead.
+To help correlate and order the exported postcard packets for the same original packet, it is possible to include a 1-byte Hop_Count field in the DEX header (presumably by claiming some space from the Flags field), which starts from 0 and increments its value at every IOAM-enabled hop. The Hop_Count field value needs to be included in the exported postcard packet. An issue of this field is that it needs to be updated at every IOAM-enabled hop. Without it, the DEX header is basically read-only except that it will be inserted at a head node and removed at an end node.  
+
+An alternative approach is to request to collect the Hop_Lim/Node_ID data by setting the corresponding bit in the IOAM-Trace-Type bitmap.  The Hop_Lim data is acquired from the lower level protocol header such as TTL for IPv4 and Hop Limit for IPv6. In addition to requiring extra packet parsing, Hop_Lim must be coupled with Node_ID which means 4 bytes are needed to be exported. More important, Hop_Lim is not exactly equivalent to Hop_Count, because Hop_Lim is updated at every hop, whether the hop is IOAM-enabled or not. A consequence is, by monitoring Hop_Lim only, if some value is missing, one cannot tell whether or not an exported postcard packet is missing. 
+
+Therefore, further discussion is needed to decide if the DEX header should include an explicit Hop_Count field, or by default, set the IOAM-Trace-Type bit to collect the Hop_Lim/Node_ID data field.
+  
 
 4.  IANA Considerations
 
